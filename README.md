@@ -1,6 +1,3 @@
+# Git Practice
 
-# git-devops
-To learn devops
-
-Git training
-
+Learning Git and Github
