@@ -3,21 +3,52 @@ pipeline {
 
     parameters {
         string(
-            name: 'NAME',
-            defaultValue: 'Jenkins',
-            description: 'Enter your name'
+            name: 'ENV',
+            defaultValue: 'dev',
+            description: 'Enter environment: dev or prod'
         )
     }
 
     stages {
-        stage('Build') {
-            steps {
-                echo "Hello ${params.NAME}"
 
-                sh """
-                    echo "Running build for ${params.NAME}"
-                """
+        stage('Validate') {
+            steps {
+                sh '''
+                    echo "Selected environment: $ENV"
+
+                    if [ "$ENV" != "dev" ] && [ "$ENV" != "prod" ]; then
+                        echo "Invalid environment"
+                        exit 1
+                    fi
+
+                    echo "Environment is valid"
+                '''
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    if [ "$ENV" = "dev" ]; then
+                        echo "Deploying to DEVELOPMENT environment"
+                        echo "Running development deployment..."
+
+                    elif [ "$ENV" = "prod" ]; then
+                        echo "Deploying to PRODUCTION environment"
+                        echo "Running production deployment..."
+                    fi
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully"
+        }
+
+        failure {
+            echo "Pipeline failed"
         }
     }
 }
