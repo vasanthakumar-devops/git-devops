@@ -1,50 +1,46 @@
-pipeline {
-    agent any
-
-    parameters {
+pieline {
+    agent any 
+    parameters{
         string(
-            name: 'ENV',
-            defaultValue: 'dev',
-            description: 'Enter environment: dev or prod'
-        )
+            Name: 'ENV',
+            DefaultValue: 'Dev',
+            Description: 'Enter the environment: dev or prod'
+            )
     }
-
-    stages {
-
-        stage('Validate') {
-            steps {
+    stage {
+        stage ('Validate') {
+            step{
                 sh '''
-                    echo "Selected environment: $ENV"
+                echo "Select environment: $ENV"
 
-                    if [ "$ENV" != "dev" ] && [ "$ENV" != "prod" ]; then
-                        echo "Invalid environment"
-                        exit 1
-                    fi
-
-                    echo "Environment is valid"
+                if ["$ENV" != "dev"] && ["$ENV" != "prod"]; then
+                echo "Invalid environment"
+                exit 1
+                fi
+                echo "Environment is valid"
                 '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
+                }
+                }    
+                
+                stage ('Deploy') {
+                step {
                 sh '''
-                    if [ "$ENV" = "dev" ]; then
-                        echo "Deploying to DEVELOPMENT environment"
-                        echo "Running development deployment..."
+                if ["$ENV" = "dev"]; then
+                echo "Deploying to Development environment"
+                echo "Running development deployment"
 
-                    elif [ "$ENV" = "prod" ]; then
-                        echo "Deploying to PRODUCTION environment"
-                        echo "Running production deployment..."
-                    fi
+                elif ["$ENV" = "prod"]; then 
+                echo "Deploying to production environment"
+                echo "Running production environment"
+                fi
                 '''
-            }
-        }
+                }
+                }
     }
 
     post {
         success {
-            echo "Pipeline completed successfully"
+            echo "pipeline compeleted successfully"
         }
 
         failure {
@@ -52,3 +48,5 @@ pipeline {
         }
     }
 }
+
+                    
