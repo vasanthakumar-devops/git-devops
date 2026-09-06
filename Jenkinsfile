@@ -1,56 +1,55 @@
 pipeline {
     agent any 
-    
-    parameters {
+
+    paramenters {
         string(
-            name: 'ENV',
-            defaultValue: 'Dev',
-            description: 'Enter the environment: dev or prod'
-            )
+           name: 'ENV',
+            defaultname: 'dev'
+            description: 'Enter the environment:'dev or prod'
+        )
     }
-    
+
     stages {
-        
-        stage('Validate') {
+
+        stage('validate') {
             steps {
                 sh '''
-                echo "Select environment: $ENV"
+                echo "Selected enviroment: $ENV"
 
                 if ["$ENV" != "dev"] && ["$ENV" != "prod"]; then
-                echo "Invalid environment"
+                echo "invalid environment"
                 exit 1
                 fi
-                
-                echo "Environment is valid"
-                '''
-                }
-                }    
-                
-                stage('Deploy') {
-                steps {
-                sh '''
-                if ["$ENV" = "dev"]; then
-                echo "Deploying to Development environment"
-                echo "Running development deployment"
 
-                elif ["$ENV" = "prod"]; then 
+                echo "environment is valid"
+                '''
+            }
+    }
+
+        stage('deploy'){
+            steps {
+                sh '''
+                if ["$ENV" = "dev"] then
+                echo "deploying to development environment"
+                echo "Running development deploying..."
+
+                elif ["$ENV" = "prod"] then
                 echo "Deploying to production environment"
-                echo "Running production environment"
+                echo "Running production deploying..."
                 fi
                 '''
-                }
-                }
-    }
-
-    post {
-        success {
-            echo "pipeline compeleted successfully"
-        }
-
-        failure {
-            echo "Pipeline failed"
+            }
         }
     }
-}
 
-                    
+        post {
+            success{
+                echo "pipeline completed successfully"
+            }
+
+            failure{
+                echo "pipeline failed"
+            }
+        }
+             
+    }
