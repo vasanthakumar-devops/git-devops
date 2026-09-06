@@ -1,5 +1,6 @@
 pieline {
     agent any 
+    
     parameters {
         string(
             name: 'ENV',
@@ -7,7 +8,9 @@ pieline {
             description: 'Enter the environment: dev or prod'
             )
     }
+    
     stage {
+        
         stage ('Validate') {
             step{
                 sh '''
