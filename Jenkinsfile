@@ -29,11 +29,11 @@ pipeline {
         stage('deploy'){
             steps {
                 sh '''
-                if ["$ENV" = "dev"] then
+                if ["$ENV" = "dev"]; then
                 echo "deploying to development environment"
                 echo "Running development deploying..."
 
-                elif ["$ENV" = "prod"] then
+                elif ["$ENV" = "prod"]; then
                 echo "Deploying to production environment"
                 echo "Running production deploying..."
                 fi
