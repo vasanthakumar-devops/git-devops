@@ -1,7 +1,7 @@
 pipeline {
     agent any 
 
-    paramenters {
+    parameters {
         string(
            name: 'ENV',
             defaultname: 'dev'
