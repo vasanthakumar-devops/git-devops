@@ -1,10 +1,10 @@
 pieline {
     agent any 
-    parameters{
+    parameters {
         string(
-            Name: 'ENV',
-            DefaultValue: 'Dev',
-            Description: 'Enter the environment: dev or prod'
+            name: 'ENV',
+            defaultValue: 'Dev',
+            description: 'Enter the environment: dev or prod'
             )
     }
     stage {
@@ -17,6 +17,7 @@ pieline {
                 echo "Invalid environment"
                 exit 1
                 fi
+                
                 echo "Environment is valid"
                 '''
                 }
