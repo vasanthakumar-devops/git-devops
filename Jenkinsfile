@@ -4,7 +4,7 @@ pipeline {
     parameters {
         string(
            name: 'ENV',
-            defaultvalue: 'dev',
+            defaultValue: 'dev',
             description: 'Enter the environment: dev or prod'
         )
     }
