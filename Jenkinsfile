@@ -9,7 +9,7 @@ pipeline {
             )
     }
     
-    stage {
+    stages {
         
         stage('Validate') {
             step {
