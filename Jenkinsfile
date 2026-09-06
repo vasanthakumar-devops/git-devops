@@ -11,8 +11,8 @@ pipeline {
     
     stage {
         
-        stage ('Validate') {
-            step{
+        stage('Validate') {
+            step {
                 sh '''
                 echo "Select environment: $ENV"
 
@@ -26,7 +26,7 @@ pipeline {
                 }
                 }    
                 
-                stage ('Deploy') {
+                stage('Deploy') {
                 step {
                 sh '''
                 if ["$ENV" = "dev"]; then
