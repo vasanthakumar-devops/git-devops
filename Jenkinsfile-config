@@ -1,0 +1,127 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'ENV',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Select environment'
+        )
+    }
+
+    environment {
+        APP_NAME = "myapp"
+    }
+
+    stages {
+
+        stage('Validate Environment') {
+            steps {
+                echo "Selected environment: ${params.ENV}"
+
+                script {
+                    if (!(params.ENV in ['dev', 'qa', 'prod'])) {
+                        error("Invalid environment")
+                    }
+                }
+            }
+        }
+
+        stage('Load Configuration') {
+            steps {
+                script {
+
+                    if (params.ENV == 'dev') {
+                        env.SERVER = "dev-server"
+                        env.PORT = "8080"
+                        env.LOG_LEVEL = "DEBUG"
+                    }
+
+                    else if (params.ENV == 'qa') {
+                        env.SERVER = "qa-server"
+                        env.PORT = "8081"
+                        env.LOG_LEVEL = "INFO"
+                    }
+
+                    else {
+                        env.SERVER = "prod-server"
+                        env.PORT = "8080"
+                        env.LOG_LEVEL = "WARN"
+                    }
+                }
+
+                echo "Configuration loaded."
+            }
+        }
+
+        stage('Display Configuration') {
+            steps {
+                echo """
+                Environment : ${params.ENV}
+                Server      : ${env.SERVER}
+                Port        : ${env.PORT}
+                Log Level   : ${env.LOG_LEVEL}
+                """
+            }
+        }
+
+        stage('Create Config File') {
+            steps {
+                sh '''
+                    mkdir -p config
+
+                    cat > config/application.conf << EOF
+                    APP_NAME=${APP_NAME}
+                    ENVIRONMENT=${ENV}
+                    SERVER=${SERVER}
+                    PORT=${PORT}
+                    LOG_LEVEL=${LOG_LEVEL}
+                    EOF
+                '''
+            }
+        }
+
+        stage('Validate Config') {
+            steps {
+                sh '''
+                    echo "Validating configuration..."
+                    cat config/application.conf
+                '''
+            }
+        }
+
+        stage('Backup Existing Config') {
+            steps {
+                echo "Backing up existing configuration..."
+                sh '''
+                    mkdir -p backup
+                    cp config/application.conf backup/application.conf.backup
+                '''
+            }
+        }
+
+        stage('Prepare Configuration Package') {
+            steps {
+                sh '''
+                    tar -czf ${APP_NAME}-${ENV}-config-${BUILD_NUMBER}.tar.gz config/
+                '''
+            }
+        }
+
+        stage('Archive Configuration') {
+            steps {
+                archiveArtifacts artifacts: '*-config-*.tar.gz'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "CONFIGURATION SUCCESSFUL"
+        }
+
+        failure {
+            echo "CONFIGURATION FAILED"
+        }
+    }
+}

@@ -1,0 +1,156 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'ENV',
+            choices: ['dev', 'qa', 'prod'],
+            description: 'Environment to deploy'
+        )
+
+        string(
+            name: 'VERSION',
+            defaultValue: '25',
+            description: 'Build number to deploy'
+        )
+    }
+
+    environment {
+        APP_NAME = "myapp"
+        DEPLOY_DIR = "/opt/myapp"
+    }
+
+    stages {
+
+        stage('Validate Deployment') {
+            steps {
+                echo "Environment : ${params.ENV}"
+                echo "Version     : ${params.VERSION}"
+
+                script {
+                    if (!(params.ENV in ['dev', 'qa', 'prod'])) {
+                        error("Invalid environment")
+                    }
+                }
+            }
+        }
+
+        stage('Approval') {
+            when {
+                expression {
+                    params.ENV == 'prod'
+                }
+            }
+
+            steps {
+                input message: 'Deploy to PRODUCTION?',
+                      ok: 'Deploy'
+            }
+        }
+
+        stage('Download Artifact') {
+            steps {
+                echo "Downloading build artifact..."
+                sh '''
+                    echo "Downloading ${APP_NAME}-${VERSION}.tar.gz"
+                '''
+            }
+        }
+
+        stage('Pre-Deployment Check') {
+            steps {
+                echo "Checking target server..."
+                sh '''
+                    echo "Checking disk space..."
+                    echo "Checking application directory..."
+                    echo "Checking connectivity..."
+                '''
+            }
+        }
+
+        stage('Backup') {
+            steps {
+                echo "Taking backup before deployment..."
+                sh '''
+                    mkdir -p backup
+                    echo "Previous application backup"
+                    > backup/previous-version.txt
+                '''
+            }
+        }
+
+        stage('Stop Application') {
+            steps {
+                echo "Stopping application..."
+                sh '''
+                    echo "systemctl stop myapp"
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deploying application..."
+                sh '''
+                    mkdir -p ${DEPLOY_DIR}
+                    echo "Deploying version ${VERSION}"
+                    > ${DEPLOY_DIR}/version.txt
+                '''
+            }
+        }
+
+        stage('Start Application') {
+            steps {
+                echo "Starting application..."
+                sh '''
+                    echo "systemctl start myapp"
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo "Checking application health..."
+                sh '''
+                    echo "curl http://localhost:8080/health"
+                    echo "Application is healthy"
+                '''
+            }
+        }
+
+        stage('Smoke Test') {
+            steps {
+                echo "Running smoke tests..."
+                sh '''
+                    echo "Testing login API..."
+                    echo "Testing application API..."
+                    echo "Smoke tests passed"
+                '''
+            }
+        }
+
+        stage('Deployment Verification') {
+            steps {
+                echo "Verifying deployed version..."
+                sh '''
+                    cat ${DEPLOY_DIR}/version.txt
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "DEPLOYMENT SUCCESSFUL"
+        }
+
+        failure {
+            echo "DEPLOYMENT FAILED"
+            echo "Rollback may be required."
+        }
+
+        always {
+            echo "Deployment pipeline completed."
+        }
+    }
+}

@@ -1,0 +1,86 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = "myapp"
+        BUILD_DIR = "build"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo "Getting source code..."
+                checkout scm
+            }
+        }
+
+        stage('Validate') {
+            steps {
+                echo "Validating source code..."
+                sh 'echo "Code structure looks good"'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo "Installing dependencies..."
+                sh 'echo "npm install / mvn install would run here"'
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                echo "Running unit tests..."
+                sh 'echo "Unit tests passed"'
+            }
+        }
+
+        stage('Code Quality') {
+            steps {
+                echo "Checking code quality..."
+                sh 'echo "SonarQube or lint check would run here"'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building application..."
+                sh '''
+                    mkdir -p $BUILD_DIR
+                    echo "Application build files" > $BUILD_DIR/app.txt
+                '''
+            }
+        }
+
+        stage('Package') {
+            steps {
+                echo "Packaging application..."
+                sh '''
+                    tar -czf ${APP_NAME}-${BUILD_NUMBER}.tar.gz $BUILD_DIR
+                '''
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                echo "Saving build artifact..."
+                archiveArtifacts artifacts: '*.tar.gz'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "BUILD SUCCESSFUL"
+        }
+
+        failure {
+            echo "BUILD FAILED"
+        }
+
+        always {
+            echo "Build pipeline completed."
+        }
+    }
+}
