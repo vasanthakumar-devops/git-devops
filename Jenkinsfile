@@ -22,22 +22,31 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image: ${IMAGE_NAME}"
-                sh "docker build -t ${IMAGE_NAME} ."
+
+                sh """
+                    docker build -t ${IMAGE_NAME} .
+                """
             }
         }
 
         stage('Docker Image Test') {
             steps {
                 echo 'Testing Docker image...'
+
                 sh """
                     docker run -d \
                         --name ${CONTAINER_NAME}-test \
-                        -p 18081:${CONTAINER_PORT} \
+                        -p 18080:${CONTAINER_PORT} \
                         ${IMAGE_NAME}
 
                     sleep 5
 
-                    curl -f http://localhost:18081
+                    echo "Testing application..."
+
+                    curl -f http://localhost:18080
+
+                    echo ""
+                    echo "Docker image test successful!"
 
                     docker stop ${CONTAINER_NAME}-test
                     docker rm ${CONTAINER_NAME}-test
@@ -61,6 +70,8 @@ pipeline {
 
                     sleep 5
 
+                    echo "Checking deployed container..."
+
                     docker ps --filter "name=${CONTAINER_NAME}" \
                         --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
                 """
@@ -70,6 +81,7 @@ pipeline {
         stage('Deployment Verification') {
             steps {
                 echo 'Verifying deployed application...'
+
                 sh """
                     curl -f http://localhost:${HOST_PORT}
 
@@ -77,9 +89,11 @@ pipeline {
                     echo "======================================"
                     echo "BUILD SUCCESSFUL"
                     echo "DEPLOYMENT SUCCESSFUL"
-                    echo "Application: ${APP_NAME}"
-                    echo "Image: ${IMAGE_NAME}"
-                    echo "URL: http://localhost:${HOST_PORT}"
+                    echo "======================================"
+                    echo "Application : ${APP_NAME}"
+                    echo "Image       : ${IMAGE_NAME}"
+                    echo "Container   : ${CONTAINER_NAME}"
+                    echo "URL         : http://localhost:${HOST_PORT}"
                     echo "======================================"
                 """
             }
@@ -87,35 +101,100 @@ pipeline {
     }
 
     post {
-    success {
-        emailext(
-            subject: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
-            body: """
-Build SUCCESSFUL
 
-Job: ${JOB_NAME}
-Build: #${BUILD_NUMBER}
-URL: ${BUILD_URL}
+        success {
+            echo 'Jenkins pipeline completed successfully!'
 
-The Jenkins Docker deployment completed successfully.
+            emailext(
+                to: 'vasanthk.official@outlook.com',
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Hello,
+
+Jenkins pipeline completed successfully.
+
+========================================
+JENKINS BUILD DETAILS
+========================================
+
+Job Name       : ${env.JOB_NAME}
+Build Number   : ${env.BUILD_NUMBER}
+Build Status   : SUCCESS
+
+Application    : ${APP_NAME}
+Docker Image   : ${IMAGE_NAME}
+Container      : ${CONTAINER_NAME}
+
+Application URL:
+http://localhost:${HOST_PORT}
+
+Jenkins Build URL:
+${env.BUILD_URL}
+
+========================================
+BUILD AND DEPLOYMENT SUCCESSFUL
+========================================
+
+Regards,
+Jenkins
 """,
-            to: 'Vasanthk.official@outlook.com'
-        )
-    }
+                attachLog: true,
+                compressLog: true
+            )
+        }
 
-    failure {
-        emailext(
-            subject: "FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
-            body: """
-Build FAILED
+        failure {
+            echo 'Jenkins pipeline failed.'
 
-Job: ${JOB_NAME}
-Build: #${BUILD_NUMBER}
-URL: ${BUILD_URL}
+            emailext(
+                to: 'vasanthk.official@outlook.com',
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Hello,
 
-Please check the Jenkins console output for the failure details.
+Jenkins pipeline has FAILED.
+
+========================================
+JENKINS BUILD DETAILS
+========================================
+
+Job Name       : ${env.JOB_NAME}
+Build Number   : ${env.BUILD_NUMBER}
+Build Status   : FAILURE
+
+Application    : ${APP_NAME}
+Docker Image   : ${IMAGE_NAME}
+Container      : ${CONTAINER_NAME}
+
+Jenkins Build URL:
+${env.BUILD_URL}
+
+Please check the attached Jenkins console log
+to identify the failure.
+
+========================================
+BUILD / DEPLOYMENT FAILED
+========================================
+
+Regards,
+Jenkins
 """,
-            to: 'Vasanthk.official@outlook.com'
-        )
+                attachLog: true,
+                compressLog: true
+            )
+
+            sh """
+                docker rm -f ${CONTAINER_NAME} 2>/dev/null || true
+                docker rm -f ${CONTAINER_NAME}-test 2>/dev/null || true
+            """
+        }
+
+        always {
+            echo 'Cleaning unused Docker images...'
+
+            sh """
+                docker image prune -f || true
+            """
+        }
     }
 }
