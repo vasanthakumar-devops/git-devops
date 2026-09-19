@@ -99,7 +99,7 @@ URL: ${BUILD_URL}
 
 The Jenkins Docker deployment completed successfully.
 """,
-            to: 'your-email@example.com'
+            to: 'Vasanthk.official@outlook.com'
         )
     }
 
@@ -115,7 +115,7 @@ URL: ${BUILD_URL}
 
 Please check the Jenkins console output for the failure details.
 """,
-            to: 'your-email@example.com'
+            to: 'Vasanthk.official@outlook.com'
         )
     }
 }
