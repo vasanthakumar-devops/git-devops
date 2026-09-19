@@ -6,7 +6,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         IMAGE_NAME = "${APP_NAME}:${IMAGE_TAG}"
         CONTAINER_NAME = "${APP_NAME}-container"
-        HOST_PORT = '8080'
+        HOST_PORT = '8081'
         CONTAINER_PORT = '80'
     }
 
