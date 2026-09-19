@@ -87,17 +87,35 @@ pipeline {
     }
 
     post {
-        success {
-            echo 'Jenkins pipeline completed successfully!'
-        }
+    success {
+        emailext(
+            subject: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+            body: """
+Build SUCCESSFUL
 
-        failure {
-            echo 'Jenkins pipeline failed. Check the stage logs.'
-            sh "docker rm -f ${CONTAINER_NAME} 2>/dev/null || true"
-        }
+Job: ${JOB_NAME}
+Build: #${BUILD_NUMBER}
+URL: ${BUILD_URL}
 
-        always {
-            sh "docker image prune -f || true"
-        }
+The Jenkins Docker deployment completed successfully.
+""",
+            to: 'your-email@example.com'
+        )
+    }
+
+    failure {
+        emailext(
+            subject: "FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
+            body: """
+Build FAILED
+
+Job: ${JOB_NAME}
+Build: #${BUILD_NUMBER}
+URL: ${BUILD_URL}
+
+Please check the Jenkins console output for the failure details.
+""",
+            to: 'your-email@example.com'
+        )
     }
 }
