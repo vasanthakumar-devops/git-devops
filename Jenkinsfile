@@ -32,12 +32,12 @@ pipeline {
                 sh """
                     docker run -d \
                         --name ${CONTAINER_NAME}-test \
-                        -p 18080:${CONTAINER_PORT} \
+                        -p 18081:${CONTAINER_PORT} \
                         ${IMAGE_NAME}
 
                     sleep 5
 
-                    curl -f http://localhost:18080
+                    curl -f http://localhost:18081
 
                     docker stop ${CONTAINER_NAME}-test
                     docker rm ${CONTAINER_NAME}-test
